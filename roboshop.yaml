@@ -7,23 +7,23 @@
     instances:
     - mongodb
     - catalogue
-    environment: dev
+    env: dev
   tasks:
   - name: create ec2 instance
     amazon.aws.ec2_instance:
       instance_type: "t3.micro"
       security_groups: "{{ sg_id }}"
       image_id: "{{ ami_id }}"
-      name: "{{ item }}-{{ environment }}"
+      name: "{{ item }}-{{ env }}"
       tags:
         Project: roboshop
         Component: "{{ item }}"
-        Environment: "{{ environment }}"
-        Name: "{{ item }}-{{ environment }}"
+        Environment: "{{ env }}"
+        Name: "{{ item }}-{{ env }}"
     loop: "{{ instance }}"    
     register: ec2_output
 
-    
+
   - name: print output
     ansible.builtin.debug:
        msg: "{{ ec2_output }}"  
