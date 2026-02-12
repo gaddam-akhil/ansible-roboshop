@@ -1,7 +1,6 @@
 - name: creating ec2 and r53 records
   hosts: all #inventory file use cheyakunda
   connection: local
-  action: create
   vars:
     sg_id: sg-0fd4180ae5446c35c
     ami_id: ami-0220d79f3f480ecf5
@@ -10,6 +9,7 @@
     - mongodb
     - catalogue
     env: dev
+    action: create
   tasks:
     ### creation ##
   - name: create ec2 instance
@@ -18,6 +18,7 @@
       security_groups: "{{ sg_id }}"
       image_id: "{{ ami_id }}"
       name: "{{ item }}-{{ env }}"
+      wait: false
       tags:
         Project: roboshop
         Component: "{{ item }}"
@@ -31,7 +32,7 @@
   - name: print output
     ansible.builtin.debug:
        msg: "{{ ec2_output }}"  
-       when: action == "create"
+    when: action == "create"
 
   - name: create route r53
     amazon.aws.route53:
@@ -41,11 +42,11 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].private_ip_address }}"
-      wait: true
-    loop: "{{ ec2_output.results }}"  
+      wait: false
+    loop: "{{ ec2_output.results }}"  # list
     when: action == "create"
 
-  - name: create route r53
+  - name: create route r53 for frontend
     amazon.aws.route53:
       state: present
       zone: "{{ domain_name }}"
@@ -53,7 +54,7 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}"
-      wait: true
+      wait: false
     loop: "{{ ec2_output.results }}" 
     when: #and
     - item.item == "frontend"
@@ -62,7 +63,7 @@
 
     ### Destroy ###
   - name: delete r53 records
-    amazon.aws.ec2_instance:
+    amazon.aws.route53: 
       state: absent
       zone: "{{ domain_name }}"
       record: "{{ item }}-{{ env }}.{{ domain_name }}" #roboshop-dev.gaddam.online
@@ -75,6 +76,7 @@
     amazon.aws.ec2_instance:
        state: absent
        name: "{{ item }}-{{ env }}"
+       wait: false
     loop: "{{ instances }}"
     when: action == "destroy"    
 
