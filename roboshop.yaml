@@ -1,6 +1,7 @@
 - name: creating ec2 and r53 records
   hosts: all #inventory file use cheyakunda
   connection: local
+  action: create
   vars:
     sg_id: sg-0fd4180ae5446c35c
     ami_id: ami-0220d79f3f480ecf5
@@ -10,6 +11,7 @@
     - catalogue
     env: dev
   tasks:
+    ### creation ##
   - name: create ec2 instance
     amazon.aws.ec2_instance:
       instance_type: "t3.micro"
@@ -23,11 +25,13 @@
         Name: "{{ item }}-{{ env }}"
     loop: "{{ instances }}"    
     register: ec2_output
+    when: action == "create"
 
 
   - name: print output
     ansible.builtin.debug:
        msg: "{{ ec2_output }}"  
+       when: action == "create"
 
   - name: create route r53
     amazon.aws.route53:
@@ -39,6 +43,7 @@
       value: "{{ item.instances[0].private_ip_address }}"
       wait: true
     loop: "{{ ec2_output.results }}"  
+    when: action == "create"
 
   - name: create route r53
     amazon.aws.route53:
@@ -50,5 +55,28 @@
       value: "{{ item.instances[0].public_ip_address }}"
       wait: true
     loop: "{{ ec2_output.results }}" 
-    when: item.item == "frontend"
+    when: #and
+    - item.item == "frontend"
+    - action == "create"
+
+
+    ### Destroy ###
+  - name: delete r53 records
+    amazon.aws.ec2_instance:
+      state: absent
+      zone: "{{ domain_name }}"
+      record: "{{ item }}-{{ env }}.{{ domain_name }}" #roboshop-dev.gaddam.online
+      type: A
+      ttl: 1
+    loop: "{{ instances }}"
+    when: action == "destroy"
+  
+  - name: delete ec2 instance
+    amazon.aws.ec2_instance:
+       state: absent
+       name: "{{ item }}-{{ env }}"
+    loop: "{{ instances }}"
+    when: action == "destroy"    
+
+
 
