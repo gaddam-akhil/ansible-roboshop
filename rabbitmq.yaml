@@ -1,0 +1,8 @@
+- name: rabbitmq server configuration
+  hosts: rabbitmq
+  become: yes
+  tasks: 
+  - name: install rabbitmq server
+    ansible.builtin.dnf:
+        name: rabbitmq-server
+        state: present 
