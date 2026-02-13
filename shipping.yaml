@@ -52,7 +52,7 @@
   - name: rename zip file
     ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
     args:
-     chdir: /app  # ikkadki move iyyi ikkade commond run avutundhi      
+     chdir: /app                             # ikkadki move iyyi ikkade commond run avutundhi      
 
   - name: create systemctl service
     ansible.builtin.template:
@@ -68,8 +68,8 @@
       name: "{{ item }}"
       executable: pip3.9
     loop:
-    - cryptography
-    - PyMySQL     
+    - cryptography                       # manam password istunam kada so vatiki e library
+    - PyMySQL                            # ikkada mysql backgroud lo python ni hit chestundhi so dhaniki e library
 
   - name: import shipping data
     community.mysql.mysql_db:
