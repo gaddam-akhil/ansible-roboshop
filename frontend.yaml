@@ -26,15 +26,15 @@
         path: usr/share/nginx/html
         state: directory   
 
-  - name: download frontend code
+  - name: download frontend
     ansible.builtin.get_url:
-       url: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
-       dest: /tmp/frontend.zip
+      url: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip 
+      dest: /tmp/frontend.zip
 
-  - name: unarchive the file
+  - name: unarchieve frontend
     ansible.builtin.unarchive:
       src: /tmp/frontend.zip
-      dest: usr/share/nginx/html
+      dest: /usr/share/nginx/html
       remote_src: yes      
   
   - name: remove default nginx
